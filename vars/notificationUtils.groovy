@@ -19,7 +19,7 @@ def call(String buildStatus = 'STARTED', String channel = '#jenkins') {
   def title_link = "${env.RUN_DISPLAY_URL}"
   def branchName = "${env.GIT_BRANCH}"
   
-  def commit = sh(returnStdout: true, script: 'git rev-parse HEAD')
+  def commit = sh(returnStdout: true, script: 'git log -1 --pretty=%B').trim()
   def author = sh(returnStdout: true, script: "git --no-pager show -s --format='%an'").trim()
 
   def message = sh(returnStdout: true, script: 'git log -1 --pretty=%B').trim()

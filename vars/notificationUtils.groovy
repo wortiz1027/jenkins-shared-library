@@ -39,28 +39,7 @@ def call(String buildStatus = 'STARTED', String channel = '#jenkins') {
     color = 'RED'
     colorCode = 'danger'
   }
-  
-  /*@NonCPS
-  def getTestSummary = { ->
-    def testResultAction = currentBuild.rawBuild.getAction(AbstractTestResultAction.class)
-    def summary = ""
-
-    if (testResultAction != null) {
-        def total = testResultAction.getTotalCount()
-        def failed = testResultAction.getFailCount()
-        def skipped = testResultAction.getSkipCount()
-
-        summary = "Test results:\n\t"
-        summary = summary + ("Passed: " + (total - failed - skipped))
-        summary = summary + (", Failed: " + failed + " ${testResultAction.failureDiffString}")
-        summary = summary + (", Skipped: " + skipped)
-    } else {
-        summary = "No tests found"
-    }
-    
-    return summary
-  }*/
-  
+      
   @NonCPS
   def getTestSummary = { ->
     def testAction = currentBuild.rawBuild.getAction(AbstractTestResultAction.class)
@@ -70,10 +49,6 @@ def call(String buildStatus = 'STARTED', String channel = '#jenkins') {
         total   = testAction.getTotalCount()
         failed  = testAction.getFailCount()
         skipped = testAction.getSkipCount() 
-
-        //summary = "Passed : ${total - failed - skipped}"
-        //summary = "${summary}, Failed: ${failed}"
-        //summary = "${summary}, Skipped: ${skipped}"
       
         summary = "Test results:\n\t"
         summary = summary + ("Passed: " + (total - failed - skipped))

@@ -8,8 +8,8 @@ import hudson.tasks.test.AbstractTestResultAction;
 import hudson.model.Actionable;
 
 def call(String buildStatus = 'STARTED', String channel = '#jenkins') {
-
-  buildStatus = buildStatus ?: 'SUCCESSFUL'
+  println buildStatus
+  buildStatus = buildStatus ?: 'SUCCESS'
   channel = channel ?: '#jenkins'
   
   def colorName  = 'RED'
@@ -17,7 +17,7 @@ def call(String buildStatus = 'STARTED', String channel = '#jenkins') {
   def subject    = "${buildStatus}: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}] (<${env.RUN_DISPLAY_URL}|Open>) (<${env.RUN_CHANGES_DISPLAY_URL}|  Changes>)'"
   def title      = "${env.JOB_NAME} Build: ${env.BUILD_NUMBER}"
   def title_link = "${env.RUN_DISPLAY_URL}"
-  def branchName = "${env.BRANCH_NAME}"
+  def branchName = "${env.GIT_BRANCH}"
   
   def commit = sh(returnStdout: true, script: 'git rev-parse HEAD')
   def author = sh(returnStdout: true, script: "git --no-pager show -s --format='%an'").trim()
@@ -29,7 +29,7 @@ def call(String buildStatus = 'STARTED', String channel = '#jenkins') {
   if (buildStatus == 'STARTED') {
     color = 'YELLOW'
     colorCode = '#FFFF00'
-  } else if (buildStatus == 'SUCCESSFUL') {
+  } else if (buildStatus == 'SUCCESS') {
     color = 'GREEN'
     colorCode = 'good'
   } else if (buildStatus == 'UNSTABLE') {
@@ -40,7 +40,7 @@ def call(String buildStatus = 'STARTED', String channel = '#jenkins') {
     colorCode = 'danger'
   }
   
-  @NonCPS
+  /*@NonCPS
   def getTestSummary = { ->
     def testResultAction = currentBuild.rawBuild.getAction(AbstractTestResultAction.class)
     def summary = ""
@@ -59,10 +59,37 @@ def call(String buildStatus = 'STARTED', String channel = '#jenkins') {
     }
     
     return summary
-  }
-    
+  }*/
+  
+  @NonCPS
+  def getTestSummary = { ->
+    def testAction = currentBuild.rawBuild.getAction(AbstractTestResultAction.class)
+    def summary = ""
+
+    if (testAction != null) {
+        total   = testAction.getTotalCount()
+        failed  = testAction.getFailCount()
+        skipped = testAction.getSkipCount() 
+
+        //summary = "Passed : ${total - failed - skipped}"
+        //summary = "${summary}, Failed: ${failed}"
+        //summary = "${summary}, Skipped: ${skipped}"
+      
+        summary = "Test results:\n\t"
+        summary = summary + ("Passed: " + (total - failed - skipped))
+        summary = "${summary}, Failed: ${failed}"
+        summary = "${summary}, Skipped: ${skipped}"
+      
+    } else {
+        summary = "No se encontraron test para ejecutar"
+    }
+
+    return summary
+}
+  
   def testSummaryRaw = getTestSummary()  
   def testSummary = "`${testSummaryRaw}`"
+  println testSummary.toString()
   
   slackSend (color: colorCode, message: subject, attachments: [
                                             [
